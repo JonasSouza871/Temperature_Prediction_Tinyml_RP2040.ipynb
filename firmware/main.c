@@ -36,7 +36,7 @@ static struct bmp280_calib_param bmp_params;
 int read_aht20(float* temp_c, float* humidity_pct) {
     AHT20_Data dados_aht;
 
-    if (!aht20_read(i2c1, &dados_aht)) {
+    if (!aht20_read(i2c0, &dados_aht)) {  // Sensores usam i2c0
         return -1;  // Erro na leitura
     }
 
@@ -51,7 +51,7 @@ int read_bmp280(float* temp_c, float* pressure_hpa) {
     int32_t temp_raw, press_raw;
 
     // Lê dados brutos do BMP280
-    bmp280_read_raw(i2c1, &temp_raw, &press_raw);
+    bmp280_read_raw(i2c0, &temp_raw, &press_raw);  // Sensores usam i2c0
 
     // Converte usando parâmetros de calibração
     int32_t temp_conv = bmp280_convert_temp(temp_raw, &bmp_params);
@@ -191,10 +191,19 @@ int main() {
     printf("╚════════════════════════════════════════╝\n\n");
 
     // ========================================================================
-    // Configurar I2C para os sensores
+    // Configurar I2C para sensores e display
     // ========================================================================
     printf("Inicializando I2C...\n");
-    i2c_init(i2c1, 400 * 1000);  // 400kHz
+
+    // I2C0: Sensores (AHT20 + BMP280) - GP0 (SDA) e GP1 (SCL)
+    i2c_init(i2c0, 100 * 1000);  // 100kHz para sensores
+    gpio_set_function(0, GPIO_FUNC_I2C);  // GP0 = SDA
+    gpio_set_function(1, GPIO_FUNC_I2C);  // GP1 = SCL
+    gpio_pull_up(0);
+    gpio_pull_up(1);
+
+    // I2C1: Display OLED - GP14 (SDA) e GP15 (SCL)
+    i2c_init(i2c1, 400 * 1000);  // 400kHz para display
     gpio_set_function(14, GPIO_FUNC_I2C);  // GP14 = SDA
     gpio_set_function(15, GPIO_FUNC_I2C);  // GP15 = SCL
     gpio_pull_up(14);
@@ -206,15 +215,15 @@ int main() {
     printf("Inicializando sensores...\n");
 
     // Inicializa AHT20
-    if (!aht20_init(i2c1)) {
+    if (!aht20_init(i2c0)) {
         printf("ERRO: Falha ao inicializar AHT20!\n");
     } else {
         printf("AHT20 inicializado com sucesso!\n");
     }
 
     // Inicializa BMP280
-    bmp280_init(i2c1);
-    bmp280_get_calib_params(i2c1, &bmp_params);
+    bmp280_init(i2c0);
+    bmp280_get_calib_params(i2c0, &bmp_params);
     printf("BMP280 inicializado com sucesso!\n");
 
     // ========================================================================
