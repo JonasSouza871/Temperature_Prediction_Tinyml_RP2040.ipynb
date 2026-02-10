@@ -85,6 +85,26 @@ Janela temporal: **10 amostras** (~5 min de historico) -> previsao em **+5, +10 
 
 ---
 
+## Treinamento
+
+| Parametro | Valor |
+|---|---|
+| Split | 70% treino / 15% validacao / 15% teste |
+| Amostras de treino | 57.673 |
+| Amostras de validacao | 12.359 |
+| Amostras de teste | 12.359 |
+| Epochs | 300 (max) |
+| Batch size | 512 |
+| Otimizador | Adam (lr = 0.0005) |
+| Loss | MSE |
+| Regularizacao | L2 (0.0001) + Dropout 20% |
+| EarlyStopping | patience=50, monitor=val_loss, restore_best_weights=True |
+| ReduceLROnPlateau | patience=20, factor=0.5, min_lr=1e-7 |
+
+O scaler (StandardScaler) foi ajustado **somente no conjunto de treino** e aplicado nos demais splits para evitar data leakage. Outliers foram verificados pelo metodo IQR (1.5x) - nenhum removido. As sequencias foram geradas por janela deslizante de 10 timesteps sobre os dados normalizados, produzindo tensores de entrada no formato `[amostras, 10, 4]`.
+
+---
+
 ## Comparacao de arquiteturas
 
 Todas as arquiteturas foram treinadas com os mesmos dados, janela temporal e horizontes de previsao.

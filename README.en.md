@@ -89,6 +89,26 @@ Time window: **10 samples** (~5 min of history) -> predictions at **+5, +10, and
 
 ---
 
+## Training
+
+| Parameter | Value |
+|---|---|
+| Split | 70% train / 15% validation / 15% test |
+| Training samples | 57,673 |
+| Validation samples | 12,359 |
+| Test samples | 12,359 |
+| Epochs | 300 (max) |
+| Batch size | 512 |
+| Optimizer | Adam (lr = 0.0005) |
+| Loss | MSE |
+| Regularization | L2 (0.0001) + Dropout 20% |
+| EarlyStopping | patience=50, monitor=val_loss, restore_best_weights=True |
+| ReduceLROnPlateau | patience=20, factor=0.5, min_lr=1e-7 |
+
+The StandardScaler was fit **only on the training set** and applied to validation and test sets to prevent data leakage. Outliers were checked using the IQR method (1.5x threshold) - none removed. Sequences were generated via a sliding window of 10 timesteps over the normalized data, producing input tensors with shape `[samples, 10, 4]`.
+
+---
+
 ## Architecture comparison
 
 All architectures were trained on the same data, time window, and prediction horizons.
